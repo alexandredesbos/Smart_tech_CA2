@@ -34,7 +34,7 @@ def telemetry(sid, data):
     image = preprocess_img(image)
     image = np.array([image])
     speed = float(data['speed'])
-    throttle = 1.0 - speed/speed_limit
+    throttle = 1.0# - speed/speed_limit
     steering_angle = float(model.predict(image))
     send_control(steering_angle, throttle)
 
@@ -45,6 +45,6 @@ def connect(sid, environ):
     send_control(0, 0)
 
 if __name__ == '__main__':
-    model = load_model('model.h5')
+    model = load_model('new_model.h5')
     app = socketio.Middleware(sio, app)
     eventlet.wsgi.server(eventlet.listen(('', 4567)), app)

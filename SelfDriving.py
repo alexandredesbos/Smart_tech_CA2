@@ -4,6 +4,7 @@ import keras
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.layers import Convolution2D, MaxPool2D, Dropout, Flatten, Dense
+from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import cv2
 import pandas as pd
 import random
@@ -11,10 +12,12 @@ import os
 import ntpath
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.image as npimg
 from imgaug import augmenters as iaa
 
-datadir = "Record-track-1"
+datadir = "Record-track-2"
+
 columns = ["center", "left","right","steering","throttle","reverse","speed"]
 data = pd.read_csv(os.path.join(datadir,"driving_log.csv"),names=columns)
 pd.set_option('display.max_columns', 7)
@@ -185,7 +188,6 @@ def img_process(img):
   img = img/255
   return img
 
-#Pre Proceess Images
 def img_process_no_imread(img):
   img = cv2.cvtColor(img,cv2.COLOR_RGB2YUV)
   img = cv2.GaussianBlur(img,(3,3),0)
@@ -252,16 +254,29 @@ def nvidia_model():
 model = nvidia_model()
 print(model.summary)
 
-history = model.fit_generator(batch_generator(X_train, y_train, 100, 1),
-                              steps_per_epoch=300,
+
+history = model.fit_generator(batch_generator(X_train, y_train, 150, 1),
+                              steps_per_epoch=100,
                               epochs=10,
-                              validation_data=batch_generator(X_valid, y_valid, 100, 0),
-                              validation_steps=200,
+                              validation_data=batch_generator(X_valid, y_valid, 150, 0),
+                              validation_steps=70,
                               verbose=1,
                               shuffle=1)
 
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
-plt.legend(['training', ])
+
+
+# plt.plot(history.history['loss'])
+# plt.plot(history.history['val_loss'])
+# plt.legend(['training', ])
+
+# Visualisation des pertes
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+
+plt.show()
 
 model.save('new_model.h5')
