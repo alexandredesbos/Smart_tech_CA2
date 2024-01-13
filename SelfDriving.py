@@ -16,7 +16,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.image as npimg
 from imgaug import augmenters as iaa
 
-datadir = "Record-track"
+datadir = "Record-track-1"
 
 columns = ["center", "left","right","steering","throttle","reverse","speed"]
 data = pd.read_csv(os.path.join(datadir,"driving_log.csv"),names=columns)
@@ -170,23 +170,6 @@ def random_augment(image, steering_angle):
     image, steering_angle = img_random_flip(image, steering_angle)
   return image, steering_angle
 
-ncols = 2
-nrows = 10
-fig, axs = plt.subplots(nrows, ncols, figsize=(15, 50))
-fig.tight_layout()
-for i in range(10):
-  rand_num = random.randint(0, len(image_paths)-1)
-  random_image = image_paths[rand_num]
-  random_steering = steerings[rand_num]
-  original_image = plt.imread(random_image)
-  augmented_image, steering_angle = random_augment(random_image, random_steering)
-  axs[i][0].imshow(original_image)
-  axs[i][0].set_title("original image")
-  axs[i][1].imshow(augmented_image)
-  axs[i][1].set_title("augmented image")
-plt.show()
-
-
 #Pre Proceess Images
 def img_process(img):
   img = npimg.imread(img)
@@ -259,10 +242,11 @@ def nvidia_model():
   return model
 
 model = nvidia_model()
-print(model.summary)
+print("Model Summary")
+model.summary()
 
 
-history = model.fit_generator(batch_generator(X_train, y_train, 100, 1),
+history = model.fit(batch_generator(X_train, y_train, 100, 1),
                               steps_per_epoch=300,
                               epochs=10,
                               validation_data=batch_generator(X_valid, y_valid, 100, 0),
