@@ -16,12 +16,12 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.image as npimg
 from imgaug import augmenters as iaa
 
-datadir = "Record-track-2"
+datadir = "Record-track"
 
 columns = ["center", "left","right","steering","throttle","reverse","speed"]
 data = pd.read_csv(os.path.join(datadir,"driving_log.csv"),names=columns)
 pd.set_option('display.max_columns', 7)
-print(data.head)
+# print(data.head)
 
 def path_leaf(path):
   head,tail = ntpath.split(path)
@@ -31,19 +31,21 @@ data['center'] = data['center'].apply(path_leaf)
 data['left'] = data['left'].apply(path_leaf)
 data['right'] = data['right'].apply(path_leaf)
 
-print(data.head())
+# print(data.head())
+# print(data.shape[0])
 
 ### Start of Pre Processing
 
 num_bins = 25
 samples_per_bin = 250
 hist,bins = np.histogram(data['steering'],num_bins)
-print(bins)
+# print(bins)
 
 centre = (bins[:-1] + bins[1:]) * 0.5
 plt.bar(centre,hist,width=0.05)
 plt.plot((np.min(data['steering']),np.max(data['steering'])),(samples_per_bin,samples_per_bin))
-print(centre)
+plt.show()
+# print(centre)
 
 remove_list = []
 print("Total Data: " , len(data))
@@ -64,9 +66,9 @@ print("Removed: ", len(remove_list))
 data.drop(data.index[remove_list], inplace=True)
 print("Remaining Data: ", len(data))
 
-hist, _ = np.histogram(data['steering'],num_bins)
-plt.bar(centre,hist,width=0.05)
-plt.plot((np.min(data['steering']),np.max(data['steering'])),(samples_per_bin,samples_per_bin))
+# hist, _ = np.histogram(data['steering'],num_bins)
+# plt.bar(centre,hist,width=0.05)
+# plt.plot((np.min(data['steering']),np.max(data['steering'])),(samples_per_bin,samples_per_bin))
 
 # Training and Validation Split
 def load_img_steering(datadir, df):
@@ -74,9 +76,10 @@ def load_img_steering(datadir, df):
   steering = []
   for i in range(len(data)):
     indexed_data = data.iloc[i]
-    centre,left,right = indexed_data[0], indexed_data[1],indexed_data[2]
+    # centre,left,right = indexed_data[0], indexed_data[1],indexed_data[2]
+    centre, left, right = indexed_data.iloc[0], indexed_data.iloc[1], indexed_data.iloc[2]
+    steering.append(float(indexed_data.iloc[3]))
     image_path.append(os.path.join(datadir,centre.strip()))
-    steering.append(float(indexed_data[3]))
   image_paths = np.asarray(image_path)
   steerings = np.asarray(steering)
   return image_paths, steerings
@@ -91,6 +94,7 @@ axes[0].hist(y_train,bins = num_bins, width=0.05,color='blue')
 axes[0].set_title('Training Set')
 axes[1].hist(y_valid,bins = num_bins, width=0.05,color='red')
 axes[1].set_title('Validation Set')
+plt.show()
 
 def zoom(image):
   zoom = iaa.Affine(scale=(1, 1.3))
@@ -105,6 +109,7 @@ axes[0].imshow(original_image)
 axes[0].set_title('Original image')
 axes[1].imshow(zoomed_image)
 axes[1].set_title('zoom image')
+plt.show()
 
 def pan(image):
   pan = iaa.Affine(translate_percent={"x":(-0.1,0.1), "y":(-0.1, 0.1)})
@@ -119,6 +124,7 @@ axes[0].imshow(original_image)
 axes[0].set_title('Original image')
 axes[1].imshow(panned_image)
 axes[1].set_title('panned image')
+plt.show()
 
 def img_random_brightness(image):
   brightness = iaa.Multiply((0.2, 1.2))
@@ -133,6 +139,7 @@ axes[0].imshow(original_image)
 axes[0].set_title('Original image')
 axes[1].imshow(bright_image)
 axes[1].set_title('bright image')
+plt.show()
 
 def img_random_flip(image, steering_angle):
   image = cv2.flip(image, 1)
@@ -149,6 +156,7 @@ axes[0].imshow(original_image)
 axes[0].set_title('Original image + sterring angle ' + str(steering_angle))
 axes[1].imshow(flipped_image)
 axes[1].set_title('flipped image + sterring angle ' + str(flipped_steering))
+plt.show()
 
 def random_augment(image, steering_angle):
   image = plt.imread(image)
@@ -176,7 +184,7 @@ for i in range(10):
   axs[i][0].set_title("original image")
   axs[i][1].imshow(augmented_image)
   axs[i][1].set_title("augmented image")
-
+plt.show()
 
 
 #Pre Proceess Images
@@ -218,6 +226,7 @@ axes[0].imshow(x_train_gen[0])
 axes[0].set_title('Training image')
 axes[1].imshow(x_valid_gen[0])
 axes[1].set_title('Valid image')
+plt.show()
 
 image = image_paths[149]
 original_image = npimg.imread(image)
@@ -229,54 +238,44 @@ axes[0].imshow(original_image)
 axes[0].set_title("Original Image")
 axes[1].imshow(preprocessed_image)
 axes[1].set_title("Preprocessed Image")
+plt.show()
 
 def nvidia_model():
   model = Sequential()
-  model.add(Convolution2D(24, kernel_size=(5,5), strides=(2,2), input_shape=(66,200, 3)))
-  model.add(Convolution2D(36, kernel_size=(5,5), strides=(2,2), activation='elu'))
-  model.add(Convolution2D(48, kernel_size=(5,5), strides=(2,2), activation='elu'))
-  model.add(Convolution2D(64, kernel_size=(3,3), activation='elu'))
-  model.add(Convolution2D(64, kernel_size=(3,3), activation='elu'))
-  model.add(Dropout(0.5))
+ 
+  model.add(Convolution2D(24, (5, 5), (2, 2), input_shape=(66, 200, 3), activation='elu'))
+  model.add(Convolution2D(36, (5, 5), (2, 2), activation='elu'))
+  model.add(Convolution2D(48, (5, 5), (2, 2), activation='elu'))
+  model.add(Convolution2D(64, (3, 3), activation='elu'))
+  model.add(Convolution2D(64, (3, 3), activation='elu'))
+ 
   model.add(Flatten())
-  model.add(Dense(100, activation='elu'))
-  model.add(Dropout(0.5))
-  model.add(Dense(50, activation='elu'))
-  model.add(Dropout(0.5))
-  model.add(Dense(10, activation='elu'))
-  model.add(Dropout(0.5))
+  model.add(Dense(100, activation = 'elu'))
+  model.add(Dense(50, activation = 'elu'))
+  model.add(Dense(10, activation = 'elu'))
   model.add(Dense(1))
-
-  optimizer = Adam(learning_rate=0.001)
-  model.compile(loss='mse', optimizer=optimizer)
+ 
+  model.compile(Adam(lr=0.0001),loss='mse')
   return model
 
 model = nvidia_model()
 print(model.summary)
 
 
-history = model.fit_generator(batch_generator(X_train, y_train, 150, 1),
-                              steps_per_epoch=100,
+history = model.fit_generator(batch_generator(X_train, y_train, 100, 1),
+                              steps_per_epoch=300,
                               epochs=10,
-                              validation_data=batch_generator(X_valid, y_valid, 150, 0),
-                              validation_steps=70,
-                              verbose=1,
-                              shuffle=1)
+                              validation_data=batch_generator(X_valid, y_valid, 100, 0),
+                              validation_steps=200
+                              )
 
 
 
-# plt.plot(history.history['loss'])
-# plt.plot(history.history['val_loss'])
-# plt.legend(['training', ])
-
-# Visualisation des pertes
-plt.plot(history.history['loss'], label='Training Loss')
-plt.plot(history.history['val_loss'], label='Validation Loss')
-plt.title('Training and Validation Loss')
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.legend(['Training', 'Validation'])
+plt.title('Loss')
 plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-
 plt.show()
 
 model.save('new_model.h5')
