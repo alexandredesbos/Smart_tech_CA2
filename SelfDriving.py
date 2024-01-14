@@ -16,7 +16,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.image as npimg
 from imgaug import augmenters as iaa
 
-datadir = "Record-track-2"
+datadir = "training data"
 
 columns = ["center", "left","right","steering","throttle","reverse","speed"]
 data = pd.read_csv(os.path.join(datadir,"driving_log.csv"),names=columns)
