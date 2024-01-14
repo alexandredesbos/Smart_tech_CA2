@@ -4,7 +4,8 @@ beta_simulator_mac
 
 
 # record files
-Record*
+Record-track*
+Record-track-1
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

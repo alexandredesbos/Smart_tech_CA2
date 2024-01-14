@@ -16,7 +16,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.image as npimg
 from imgaug import augmenters as iaa
 
-datadir = "Record-track-1"
+datadir = "Record-track-2"
 
 columns = ["center", "left","right","steering","throttle","reverse","speed"]
 data = pd.read_csv(os.path.join(datadir,"driving_log.csv"),names=columns)
@@ -164,9 +164,9 @@ def random_augment(image, steering_angle):
     image = zoom(image)
   if np.random.rand() < 0.5:
     image = pan(image)
-  if np.random.rand() < 0.5:
-    image = img_random_brightness(image)
-  if np.random.rand() < 0.5:
+  # if np.random.rand() < 0.2:
+  image = img_random_brightness(image)
+  if np.random.rand() < 0.2:
     image, steering_angle = img_random_flip(image, steering_angle)
   return image, steering_angle
 
