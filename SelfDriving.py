@@ -164,9 +164,9 @@ def random_augment(image, steering_angle):
     image = zoom(image)
   if np.random.rand() < 0.5:
     image = pan(image)
-  # if np.random.rand() < 0.2:
-  image = img_random_brightness(image)
-  if np.random.rand() < 0.2:
+  if np.random.rand() < 0.5:
+    image = img_random_brightness(image)
+  if np.random.rand() < 0.5:
     image, steering_angle = img_random_flip(image, steering_angle)
   return image, steering_angle
 
