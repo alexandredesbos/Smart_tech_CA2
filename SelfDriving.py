@@ -267,7 +267,7 @@ model.summary()
 
 
 history = model.fit(batch_generator(X_train, y_train, 100, 1),
-                              steps_per_epoch=50,
+                              steps_per_epoch=300,
                               epochs=10,
                               validation_data=batch_generator(X_valid, y_valid, 100, 0),
                               validation_steps=200
