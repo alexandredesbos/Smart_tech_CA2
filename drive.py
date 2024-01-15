@@ -12,7 +12,7 @@ from matplotlib import image as mpimg
 sio = socketio.Server()
 app = Flask(__name__)
 
-speed_limit = 18
+speed_limit = 30
 
 def preprocess_img(img):
     img = img[60:135, :, :]
@@ -34,7 +34,7 @@ def telemetry(sid, data):
     image = preprocess_img(image)
     image = np.array([image])
     speed = float(data['speed'])      
-    throttle = 1.0 - speed/speed_limit  
+    throttle = 1.0  
     steering_angle = float(model.predict(image))
     send_control(steering_angle, throttle)
 
@@ -45,7 +45,7 @@ def connect(sid, environ):
     send_control(0, 0)
 
 if __name__ == '__main__':
-    # model = load_model('models_history/track1-final.h5')
-    model = load_model('new_model.h5')
+    #model = load_model('models_history/track1-final.h5')
+    model = load_model('models_history/track_1_fail(50epoch).h5')
     app = socketio.Middleware(sio, app)
     eventlet.wsgi.server(eventlet.listen(('', 4567)), app)

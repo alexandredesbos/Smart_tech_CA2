@@ -16,7 +16,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.image as npimg
 from imgaug import augmenters as iaa
 
-datadir = "Record-track"
+datadir = "training data"
 
 columns = ["center", "left","right","steering","throttle","reverse","speed"]
 data = pd.read_csv(os.path.join(datadir,"driving_log.csv"),names=columns)
@@ -250,7 +250,7 @@ model.summary()
 
 
 history = model.fit(batch_generator(X_train, y_train, 100, 1),
-                              steps_per_epoch=300,
+                              steps_per_epoch=50,
                               epochs=10,
                               validation_data=batch_generator(X_valid, y_valid, 100, 0),
                               validation_steps=200
@@ -265,4 +265,4 @@ plt.title('Loss')
 plt.xlabel('Epoch')
 plt.show()
 
-model.save('new_model.h5')
+model.save('model_training_data(track1).h5')
