@@ -46,6 +46,6 @@ def connect(sid, environ):
 
 if __name__ == '__main__':
     #model = load_model('models_history/track1-final.h5')
-    model = load_model('models_history/track_1_fail(50epoch).h5')
+    model = load_model('models_history/track_1_(23speed).h5')
     app = socketio.Middleware(sio, app)
     eventlet.wsgi.server(eventlet.listen(('', 4567)), app)
