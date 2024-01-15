@@ -16,7 +16,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.image as npimg
 from imgaug import augmenters as iaa
 
-datadir = "training data"
+datadir = "Record-track"
 
 columns = ["center", "left","right","steering","throttle","reverse","speed"]
 data = pd.read_csv(os.path.join(datadir,"driving_log.csv"),names=columns)
@@ -202,6 +202,8 @@ def batch_generator(image_paths, steering_angles, batch_size, is_training):
       batch_steering.append(steering)
     yield(np.asarray(batch_img), np.asarray(batch_steering))
 
+
+
 x_train_gen, y_train_gen = next(batch_generator(X_train, y_train, 1, 1))
 x_valid_gen, y_valid_gen = next(batch_generator(X_valid, y_valid, 1, 0))
 fig,axes = plt.subplots(1,2,figsize = (12,4))
@@ -234,6 +236,7 @@ def nvidia_model():
  
   model.add(Flatten())
   model.add(Dense(100, activation = 'elu'))
+  model.add(Dropout(0.5))
   model.add(Dense(50, activation = 'elu'))
   model.add(Dense(10, activation = 'elu'))
   model.add(Dense(1))
