@@ -16,7 +16,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.image as npimg
 from imgaug import augmenters as iaa
 
-datadir = "training data"
+datadir = "Record-track"
 
 columns = ["center", "left","right","steering","throttle","reverse","speed"]
 data = pd.read_csv(os.path.join(datadir,"driving_log.csv"),names=columns)
@@ -71,18 +71,43 @@ print("Remaining Data: ", len(data))
 # plt.plot((np.min(data['steering']),np.max(data['steering'])),(samples_per_bin,samples_per_bin))
 
 # Training and Validation Split
+# def load_img_steering(datadir, df):
+#   image_path = []
+#   steering = []
+#   for i in range(len(data)):
+#     indexed_data = data.iloc[i]
+#     # centre,left,right = indexed_data[0], indexed_data[1],indexed_data[2]
+#     centre, left, right = indexed_data.iloc[0], indexed_data.iloc[1], indexed_data.iloc[2]
+#     steering.append(float(indexed_data.iloc[3]))
+#     image_path.append(os.path.join(datadir,centre.strip()))
+#   image_paths = np.asarray(image_path)
+#   steerings = np.asarray(steering)
+#   return image_paths, steerings
 def load_img_steering(datadir, df):
-  image_path = []
-  steering = []
-  for i in range(len(data)):
-    indexed_data = data.iloc[i]
-    # centre,left,right = indexed_data[0], indexed_data[1],indexed_data[2]
-    centre, left, right = indexed_data.iloc[0], indexed_data.iloc[1], indexed_data.iloc[2]
-    steering.append(float(indexed_data.iloc[3]))
-    image_path.append(os.path.join(datadir,centre.strip()))
-  image_paths = np.asarray(image_path)
-  steerings = np.asarray(steering)
-  return image_paths, steerings
+    image_path = []
+    steering = []
+    for i in range(len(data)):
+        indexed_data = data.iloc[i]
+        center, left, right = indexed_data[0], indexed_data[1], indexed_data[2]
+        steering_center = float(indexed_data[3])
+
+        # Correction factor for left and right images
+        correction = 0.2  # this is a parameter to tune
+        steering_left = steering_center + correction
+        steering_right = steering_center - correction
+
+        image_path.append(os.path.join(datadir, center.strip()))
+        steering.append(steering_center)
+
+        image_path.append(os.path.join(datadir, left.strip()))
+        steering.append(steering_left)
+
+        image_path.append(os.path.join(datadir, right.strip()))
+        steering.append(steering_right)
+
+    image_paths = np.asarray(image_path)
+    steerings = np.asarray(steering)
+    return image_paths, steerings
 
 image_paths, steerings = load_img_steering(datadir+'/IMG',data)
 X_train,X_valid,y_train,y_valid = train_test_split(image_paths,steerings,test_size=0.2,random_state=6)
@@ -186,21 +211,43 @@ def img_process_no_imread(img):
   img = img/255
   return img
 
+# def batch_generator(image_paths, steering_angles, batch_size, is_training):
+#   while True:
+#     batch_img = []
+#     batch_steering = []
+#     for i in range(batch_size):
+#       random_index = random.randint(0, len(image_paths)-1)
+#       if is_training:
+#         im, steering = random_augment(image_paths[random_index], steering_angles[random_index])
+#       else:
+#         im = plt.imread(image_paths[random_index])
+#         steering = steering_angles[random_index]
+#       im = img_process_no_imread(im)
+#       batch_img.append(im)
+#       batch_steering.append(steering)
+#     yield(np.asarray(batch_img), np.asarray(batch_steering))
 def batch_generator(image_paths, steering_angles, batch_size, is_training):
-  while True:
-    batch_img = []
-    batch_steering = []
-    for i in range(batch_size):
-      random_index = random.randint(0, len(image_paths)-1)
-      if is_training:
-        im, steering = random_augment(image_paths[random_index], steering_angles[random_index])
-      else:
-        im = plt.imread(image_paths[random_index])
-        steering = steering_angles[random_index]
-      im = img_process_no_imread(im)
-      batch_img.append(im)
-      batch_steering.append(steering)
-    yield(np.asarray(batch_img), np.asarray(batch_steering))
+    while True:
+        batch_img = []
+        batch_steering = []
+
+        for i in range(batch_size):
+            random_index = random.randint(0, len(image_paths) - 1)
+            image = image_paths[random_index]
+            steering_angle = steering_angles[random_index]
+
+            if is_training:
+                im, steering = random_augment(image, steering_angle)
+            else:
+                im = plt.imread(image)
+                steering = steering_angle
+
+            im = img_process_no_imread(im)
+            batch_img.append(im)
+            batch_steering.append(steering)
+
+        yield (np.asarray(batch_img), np.asarray(batch_steering))
+
 
 x_train_gen, y_train_gen = next(batch_generator(X_train, y_train, 1, 1))
 x_valid_gen, y_valid_gen = next(batch_generator(X_valid, y_valid, 1, 0))
@@ -234,6 +281,7 @@ def nvidia_model():
  
   model.add(Flatten())
   model.add(Dense(100, activation = 'elu'))
+  model.add(Dropout(0.5))
   model.add(Dense(50, activation = 'elu'))
   model.add(Dense(10, activation = 'elu'))
   model.add(Dense(1))
