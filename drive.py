@@ -45,7 +45,7 @@ def connect(sid, environ):
     send_control(0, 0)
 
 if __name__ == '__main__':
-    model = load_model('models_history/track2-half.h5')
-    # model = load_model('new_model.h5')
+    # model = load_model('models_history/track1-final.h5')
+    model = load_model('new_model.h5')
     app = socketio.Middleware(sio, app)
     eventlet.wsgi.server(eventlet.listen(('', 4567)), app)
