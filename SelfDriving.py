@@ -80,7 +80,7 @@ def load_img_steering(datadir, df):
         steering_center = float(indexed_data[3])
 
         # Correction factor for left and right images
-        correction = 0.2  # this is a parameter to tune
+        correction = 0.2
         steering_left = steering_center + correction
         steering_right = steering_center - correction
 
@@ -88,10 +88,10 @@ def load_img_steering(datadir, df):
         steering.append(steering_center)
 
         image_path.append(os.path.join(datadir, left.strip()))
-        steering.append(steering_left+0.15)
+        steering.append(steering_left)
 
         image_path.append(os.path.join(datadir, right.strip()))
-        steering.append(steering_right-0.15)
+        steering.append(steering_right)
 
     image_paths = np.asarray(image_path)
     steerings = np.asarray(steering)
